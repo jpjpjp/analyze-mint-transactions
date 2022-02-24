@@ -1,0 +1,21 @@
+# End User Specific transaction and category lists
+transactions.csv
+exclude-spending-groups.csv
+exclude-from-income-groups.csv
+mint-spending-groups.csv
+
+# Generated Files
+spending.csv
+group_spending.csv
+income.csv
+group_income.csv
+reports/*.txt
+reports/*.html
+reports/*.png
+
+# System files
+.ipynb_checkpoints
+*.txt
+*.DS_Store
+.env*
+__pycache__

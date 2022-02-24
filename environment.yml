@@ -1,0 +1,12 @@
+name: analyze-mint-transactions
+channels:
+  - defaults
+dependencies:
+  - ipython=7.19.0=py39hecd8cb5_0
+  - jupyter=1.0.0=py39hecd8cb5_7
+  - matplotlib=3.3.2=hecd8cb5_0
+  - notebook=6.1.6=py39hecd8cb5_0
+  - numpy=1.19.2=py39he57783f_0
+  - pandas=1.2.0=py39hb2f4e1b_0
+  - python=3.9.1=h88f2d9e_2
+  - seaborn=0.11.1=pyhd3eb1b0_0
