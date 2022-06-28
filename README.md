@@ -37,7 +37,7 @@ Prerequisites:
 
 4) This will create the environment for the scripts to run in and download all necessary dependencies.   After this process completes run this command:
 
-    `conda activate analyze-mint-spending`
+    `conda activate analyze-mint-transactions`
 
 This will "activate" the anaconda environment that will allow python to run. This final step must be repeated whenver the user starts a new command shell session in the project directory. (For those using an autoenv type utility, there is also a .env file for automatically activating the environment whenever the directory is entered.)
 
