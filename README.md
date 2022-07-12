@@ -1,4 +1,4 @@
-# analyze-mint-spending
+# analyze-mint-transactions
 
 This project provides a set of scripts and visualizations that allow Mint users to analyze their spending and income.
 
