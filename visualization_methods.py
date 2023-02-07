@@ -21,7 +21,6 @@ def visualize_expenses_by_group(year, year_data, colors, out_file='', spending=T
     '''
     #Build a legend for a Pie Chart that includes the Spending Category and the Amount
     legend_label = []
-    expenses_for_year = year_data.sum()
     for idx in year_data.index:
         if year_data.loc[idx] <= 0:
             # Remove categories with "negative spending"
@@ -31,7 +30,8 @@ def visualize_expenses_by_group(year, year_data, colors, out_file='', spending=T
         else:
             # Otherwise add the group name and amount to the legend
             legend_label.append(idx + ': ${:,.2f}'.format(year_data.loc[idx]))
-            
+    expenses_for_year = year_data.sum()
+    
     # Plot the chart
     if spending:
         title = str(year) + ' Spending: '+ '${:,.2f}'.format(expenses_for_year)

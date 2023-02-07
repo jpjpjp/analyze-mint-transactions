@@ -30,9 +30,9 @@ for col in df.columns:
     year = int(col.split(' ', 1)[0])
     if year < ec.IGNORE_YEARS_BEFORE or year == ec.CURRENT_YEAR:
         del df[col]
-    if year < minyr:
+    elif year < minyr:
         minyr = year
-    if year > maxyr:
+    elif year > maxyr:
         maxyr = year
 
 # Create a new column with the average annual spending by group
