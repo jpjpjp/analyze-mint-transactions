@@ -1,7 +1,7 @@
 # End User Specific transaction and category lists
 transactions.csv
 transactions*.csv
-exclude-spending-groups.csv
+exclude-from-spending-groups.csv
 exclude-from-income-groups.csv
 mint-spending-groups.csv
 
