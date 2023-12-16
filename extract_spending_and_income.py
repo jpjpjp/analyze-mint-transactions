@@ -27,6 +27,7 @@ import os
 # Import local helper modules
 import extract_spending_data_methods as esd
 import read_mint_transaction_data as rmtd
+import add_new_transactions as ant
 
 # Import shared configuration file
 import expenses_config as ec
@@ -101,7 +102,14 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
 
 def main():
     # Read the raw mint transaction data into a dataframe
-    df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
+    if rmtd.new_transactions_available(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS):
+        choice = input(f'{ec.PATH_TO_NEW_TRANSACTIONS} is newer than {ec.PATH_TO_YOUR_TRANSACTIONS}.  Add new transaction data (y/n)? ')
+        if choice.lower() == 'y':
+            df = ant.add_new_and_return_all(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS)
+        else:
+            df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
+    else:
+        df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
 
     ## Run through the transaction list from mint and add a Spending Group column
     # Set the final parameter to True to get some output about which categories are being assigned to which group
