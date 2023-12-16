@@ -4,6 +4,13 @@ transactions*.csv
 exclude-from-spending-groups.csv
 exclude-from-income-groups.csv
 mint-spending-groups.csv
+mint-transactions.csv
+empower-transactions.csv
+categories.csv
+
+# Config files for my mother
+granny-*
+jp-expenses-config.py
 
 # Generated Files
 spending.csv
@@ -15,6 +22,9 @@ exclude-from-income-groups.csv
 reports/*.txt
 reports/*.html
 reports/*.png
+granny-reports/*.txt
+granny-reports/*.html
+granny-reports/*.png
 
 # System files
 .ipynb_checkpoints
