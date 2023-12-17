@@ -43,9 +43,8 @@ PATH_TO_GROUPS_TO_EXCLUDE_FROM_INCOME = "./exclude-from-income-groups.csv"
 #################
 # Configuration
 #################
-# Third party accounts to extract from Transaction Data
-# Leave these blank or delete them if you don't want to use this functionality
-THIRD_PARTY_ACCOUNTS = ["Granny Checking", "Granny Savings", "Granny Line of Credit", "Granny Upromise Mastercard"]
+# Third party accounts to extract from Transaction Data:
+THIRD_PARTY_ACCOUNTS = []
 THIRD_PARTY_PREFIX = "granny"
 
 # When predicting future spending, the tools will use the averages

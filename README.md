@@ -59,7 +59,7 @@ Next, to export your transaction history, scroll to the bottom of the tab, and c
 
 Save the export to file called `transactions.csv` in this project's directory.
 
-Mint limits the amount of transaction data that can be exported, so long time users of this tool will need to maintain a local historical copy of their exported transaction data.  Users can merge periodically exported new transactions to this data by specifying PATH_TO_NEW_TRANSACTIONS in the config file.  NEW_TRANSACTION_SOURCE can be set to "mint" to indicate its source.
+Mint limits the amount of transaction data that can be exported, so long time users of this tool will need to maintain a local historical copy of their exported transaction data.  Users can merge periodically exported new transactions to this data by specifying PATH_TO_NEW_TRANSACTIONS in the config file.  NEW_TRANSACTION_SOURCE can be set to "mint" to indicate its source. When configured with these parameters, the tool will automatically merge the new transactions from PATH_TO_NEW_TRANSACTIONS to PATH_TO_YOUR_TRANSACTIONS.
 
 ## Exporting Transaction Data from Empower
 
@@ -68,6 +68,8 @@ Given the shutdown of Mint on Jan 1, 2024, I've found Empower to be a reasonable
 Empower's exported transaction format differs slightly from Mint's.   As a consequence, data exported from Empower must be saved to an empower specific csv file (ie: `empower-transactions.csv`) and transformed to mint format before it can be operated on.
 
 Empower users **must** set PATH_TO_NEW_TRANSACTIONS to the name of the csv file exported from Empower, and set NEW_TRANSACTION_SOURCE to "empower".   The tools will transform this data to mint format, and add new transactions to the csv filename specified by PATH_TO_YOUR_TRANSACTIONS in [expenses_config.py](./expenses_config.py)
+
+Over time users can choose to do small periodic exports of Empower data to be merged with their local copy of historical data in PATH_TO_YOUR_TRANSACTIONS, or they can simply export all of their transaction data from Empower, each time they run the tool.  If choosing the latter approach, delete the local copy of the PATH_TO_YOUR_TRANSACTIONS file before running the tool so that it does not interactively ask the user how to manage duplicate transactions.
 
 ## Preparing to extract just the Spending and Income transactions
 
@@ -186,7 +188,6 @@ Both the python scripts and the jupyter notebooks rely on some functionality tha
 - [add_new_transactions.py](./add_new_transactions.py) - the file includes methods for merging new transaction data with a locally stored copy of historical transaction data.  It generates output showing which transactions were added and detects possible duplicate transactions, querying the user on how to handle them.
 - [extract_spending_data_methods.py](./extract_spending_data_methods.py) - this file includes methods to read and generate the various input and output csv files.
 - [process_empower_transactions.py](./process_empower_transactions.py) - this file includes the methods for converting transactions in empower format to the underlying mint format used by these tools.
-- [process_extra_accounts.py](./process_empower_transactions.py) - this file includes methods to extract transactions associated with the THIRD_PARTY_ACCOUNTS configuration.
 - [visualization_methods.py](./visualization_methods.py) - this file includes the methods used to generate the pie charts and tables.
 
 If you are playing around in jupyter, feel free to pull the relevant methods out of the python file and paste them into cells in the jupyter notebook so you can tewak them as you like.

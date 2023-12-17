@@ -77,28 +77,15 @@ def add_new_transactions(new_df, old_df, outfile, prefix=""):
         old_df = add_row_if_unique(old_df,row)
     #old_df = new_df.apply(lambda row: add_row_if_unique(old_df, row), axis=1).iloc[-1]
 
-    # Sort merged dataframe by descending date
-    old_df = old_df.sort_values(by='Date', ascending=False)
+    # Sort and index merged dataframe by descending date
+    df = old_df.sort_values(by='Date', ascending=False)
+    df.set_index(['Date'], inplace=True)
+
     # Write updated mint_df to new CSV file
-    if prefix != "":
-        outfile= f"{prefix}-{outfile}"
-    dir_name = os.path.dirname(outfile)
-    file_name = os.path.splitext(os.path.basename(outfile))[0] + f'-{datetime.date.today():%Y-%m-%d}.csv'
-    outfile = os.path.join(dir_name, file_name)
-    old_df.to_csv(f"{outfile}", index=False)
-    return old_df
+    rmtd.output_new_transaction_data(df, outfile, prefix)
+    return _df
  
-def extract_accounts(df, acct_list):
-    my_accounts = df[~df['Account Name'].isin(acct_list)]
-    their_accounts = df[df['Account Name'].isin(acct_list)]
-
-    # # Write out the new transaction files
-    # my_accounts.to_csv(outfile, index=True)
-    # their_accounts.to_csv(f"{prefix}-{outfile}", index=True)
-
-    return(my_accounts, their_accounts)
-
-def add_new_and_return_all(trans, new_trans, return_indexed_df=True):
+def add_new_and_return_all(trans, new_trans):
         # Get newly exported transaction data
     if ec.NEW_TRANSACTION_SOURCE == "mint":
         new_df = rmtd.read_mint_transaction_csv(new_trans, index_on_date=False)
@@ -113,8 +100,8 @@ def add_new_and_return_all(trans, new_trans, return_indexed_df=True):
     old_df = rmtd.read_mint_transaction_csv(trans, index_on_date=False)
 
     # If configured split the transaction data
-    if not (ec.THIRD_PARTY_ACCOUNTS is None or ec.THIRD_PARTY_PREFIX is None):
-        (my_df, their_df) = extract_accounts(new_df,ec.THIRD_PARTY_ACCOUNTS)
+    if hasattr(ec, 'THIRD_PARTY_ACCOUNTS') and hasattr(ec, 'THIRD_PARTY_PREFIX'):
+        (my_df, their_df) = rmtd.extract_accounts(new_df,ec.THIRD_PARTY_ACCOUNTS)
         print(f'\nProcessing accounts for {ec.THIRD_PARTY_PREFIX}...')
         their_old_df = rmtd.read_mint_transaction_csv(f"{ec.THIRD_PARTY_PREFIX}-{ec.PATH_TO_YOUR_TRANSACTIONS}", index_on_date=False)
         add_new_transactions(their_df, their_old_df, ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_PREFIX)
@@ -124,9 +111,6 @@ def add_new_and_return_all(trans, new_trans, return_indexed_df=True):
         # Add new or changed transactions to accumulated data
         df = add_new_transactions(new_df, old_df, ec.PATH_TO_YOUR_TRANSACTIONS)
 
-    # Index on the date and return the transaction list
-    if return_indexed_df:
-        df.set_index(['Date'], inplace=True)
     return df
 
 if __name__ == '__main__':

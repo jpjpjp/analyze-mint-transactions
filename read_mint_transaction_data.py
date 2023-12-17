@@ -4,6 +4,9 @@
 import pandas as pd
 import datetime
 import os
+import shutil
+import sys
+import expenses_config as ec
 
 def get_latest_transaction_file(path_to_data, query_user=True):
     # Check if there is a file named transactions-YYYY-MM-DD.csv in the same directory as path_to_data
@@ -21,6 +24,36 @@ def get_latest_transaction_file(path_to_data, query_user=True):
         
     return path_to_data
 
+def extract_accounts(df, acct_list):
+    my_accounts = df[~df['Account Name'].isin(acct_list)]
+    their_accounts = df[df['Account Name'].isin(acct_list)]
+
+    return(my_accounts, their_accounts)
+
+def extract_their_accounts_and_get_mine(trans, account_list, output, prefix=""):
+    df = read_mint_transaction_csv(trans)
+    (my_df, their_df) = extract_accounts(df,ec.THIRD_PARTY_ACCOUNTS)
+    if len(their_df):
+        # Write out the 3rd party data
+        output_new_transaction_data(their_df, output, prefix)
+    if len(my_df):
+        # Write out a clean version of my transaction data
+        output_new_transaction_data(my_df, output)
+        
+    return my_df
+
+def output_new_transaction_data(df, outfile, prefix=""):
+    if prefix != "":
+        outfile= f"{prefix}-{outfile}"
+    if os.path.isfile(outfile):
+        # Create a temp version of the transactions with today's data
+        dir_name = os.path.dirname(outfile)
+        file_name = os.path.splitext(os.path.basename(outfile))[0] + f'-{datetime.date.today():%Y-%m-%d}.csv'
+        outfile = os.path.join(dir_name, file_name)
+
+    df.to_csv(f"{outfile}")
+
+
 def new_transactions_available(trans, new_trans):
     """
     Returns true if the new transactions data is newer than the
@@ -31,7 +64,16 @@ def new_transactions_available(trans, new_trans):
     new_trans - filename with new transactions to add
     """
     trans = get_latest_transaction_file(trans)
-    if os.path.getmtime(new_trans) > os.path.getmtime(trans):
+    if not os.path.isfile(trans):
+        # Edge case - new transactions exist, but historical ones don't yet
+        # If configured split the transaction data
+        if hasattr(ec, 'THIRD_PARTY_ACCOUNTS') and hasattr(ec, 'THIRD_PARTY_PREFIX'):
+            extract_their_accounts_and_get_mine(new_trans, ec.THIRD_PARTY_ACCOUNTS, trans, ec.THIRD_PARTY_PREFIX)
+        else:
+            # New transactions are the only transactions!
+            shutil.copy(new_trans, trans)
+        return False
+    elif os.path.getmtime(new_trans) > os.path.getmtime(trans):
         return True
     else:
         return False

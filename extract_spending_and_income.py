@@ -122,14 +122,22 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
 
 def main():
     # If configured and detected, read the new transaction data and aggregate it
-    if rmtd.new_transactions_available(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS):
-        choice = input(f'{ec.PATH_TO_NEW_TRANSACTIONS} is newer than {ec.PATH_TO_YOUR_TRANSACTIONS}.  Add new transaction data (y/n)? ')
-        if choice.lower() == 'y':
-            df = ant.add_new_and_return_all(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS)
+    if hasattr(ec, 'PATH_TO_NEW_TRANSACTIONS') and hasattr(ec, 'NEW_TRANSACTION_SOURCE'):
+        if rmtd.new_transactions_available(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS):
+            choice = input(f'{ec.PATH_TO_NEW_TRANSACTIONS} is newer than {ec.PATH_TO_YOUR_TRANSACTIONS}.  Add new transaction data (y/n)? ')
+            if choice.lower() == 'y':
+                df = ant.add_new_and_return_all(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS)
+            else:
+                df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
         else:
             df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
     else:
-        df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
+        # PATH_TO_YOUR_TRANSACTIONS is the only data we have
+        # If configured split out the 3rd party transaction data
+        if hasattr(ec, 'THIRD_PARTY_ACCOUNTS') and hasattr(ec, 'THIRD_PARTY_PREFIX'):
+            df = rmtd.extract_their_accounts_and_get_mine(ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_ACCOUNTS, ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_PREFIX)
+        else:
+            df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
 
     # Run through the transaction list from mint and add a Spending Group column
     # Set the final parameter to True to get some output about which categories
