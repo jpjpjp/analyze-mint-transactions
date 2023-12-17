@@ -1,22 +1,42 @@
 '''extract_spending_and_income.py
 
-   From an input csv of raw mint transaction data
-   extract the transactions relevant to a spending and income analysis.
-   
-   Included in this will be adding groups (logical
-   groupings of transaction categoreis) to each transaction,
-   removing groups not relevant to a spending or income analysis, 
-   and adjusting any credits in spending categories so that they appear as 
-   "refunds", or and adjusting any debits to offset income in a category
-   
-   The output of this will be four new CSV files as specied in expenses_config.py   - OUTPUT_INCOME_DATA is a CSV of the individual transactions
-   related to income only
-   - OUTPUT_INCOME_BY_SPENDING_BY_GROUP is a CSV of the total annual income
-   by spending group for each year represented in the transaction data
-   - OUTPUT_SPENDING_DATA is a CSV of the individual transactions
-   related to spending only
-   - OUTPUT_SPENDING_BY_GROUP is a CSV of the total annual spending
-   by spending group for each year represented in the transaction data
+    From an input csv of raw mint transaction data
+    extract the transactions relevant to a spending and income analysis.
+
+    Data is read from an input files specified by the PATH_TO_YOUR_TRANSACTIONS
+    configuration parameters in expenses_config.py.
+
+    If PATH_TO_NEW_TRANSACTIONS is also specified, the transactions in this file
+    will be merged with the exististing data in the PATH_TO_YOUR_TRANSACTIONS
+    file.   As part of this merging process the following will take place:
+    - If NEW_TRANSACTION_SOURCE is set to "empower" the data will be converted
+    from Empower to Mint format
+    - If THIRD_PARTY_ACCOUNTS is set, transactions associated from these accounts
+    will be extracted and merged with a different transactions file that is
+    prepended with the string specified in the THIRD_PARTY_PREFIX parameter
+
+    As part of the merging process new transactions are automatically added to
+    file specified by PATH_TO_YOUR_TRANSACTIONS.  Possible duplicates are flagged
+    and the user is prompted for how to treat them. In order to avoid permanently
+    overwriting existing historical transaction data, today's date is added to
+    the updated transactions file.
+    
+    Once the new raw data (if any is detected) is aggregate, the transaction
+    data is processed. Included in this will be adding groups (logical
+    groupings of transaction categoreis) to each transaction,
+    removing groups not relevant to a spending or income analysis, 
+    and adjusting any credits in spending categories so that they appear as 
+    "refunds", or and adjusting any debits to offset income in a category
+    
+    The output of this will be four new CSV files defined in expenses_config.py:
+    - OUTPUT_INCOME_DATA is a CSV of the individual transactions
+    related to income only
+    - OUTPUT_INCOME_BY_SPENDING_BY_GROUP is a CSV of the total annual income
+    by spending group for each year represented in the transaction data
+    - OUTPUT_SPENDING_DATA is a CSV of the individual transactions
+    related to spending only
+    - OUTPUT_SPENDING_BY_GROUP is a CSV of the total annual spending
+    by spending group for each year represented in the transaction data
 '''
 # Import necessary modules
 import pandas as pd
@@ -101,7 +121,7 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
     webbrowser.open('file://' + os.path.realpath(report_path), new=2) # new=2: open in a new tab, if possible
 
 def main():
-    # Read the raw mint transaction data into a dataframe
+    # If configured and detected, read the new transaction data and aggregate it
     if rmtd.new_transactions_available(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS):
         choice = input(f'{ec.PATH_TO_NEW_TRANSACTIONS} is newer than {ec.PATH_TO_YOUR_TRANSACTIONS}.  Add new transaction data (y/n)? ')
         if choice.lower() == 'y':
@@ -111,17 +131,18 @@ def main():
     else:
         df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
 
-    ## Run through the transaction list from mint and add a Spending Group column
-    # Set the final parameter to True to get some output about which categories are being assigned to which group
+    # Run through the transaction list from mint and add a Spending Group column
+    # Set the final parameter to True to get some output about which categories
+    # are being assigned to which group
     try:
         df = esd.group_categories(df, ec.PATH_TO_SPENDING_GROUPS, show_group_details=False)
     except BaseException as e:
         sys.exit(-1)
 
-    # Extract spending data
+    # Extract spending data and generate local CSV files for further processing
     extract_data(df, ec.PATH_TO_GROUPS_TO_EXCLUDE, ec.PATH_TO_SPENDING_DATA, ec.PATH_TO_SPENDING_BY_GROUP, False)
 
-    # Extract income data
+    # Extract income data  and generate local CSV files for further processing
     extract_data(df, ec.PATH_TO_GROUPS_TO_EXCLUDE_FROM_INCOME, ec.OUTPUT_INCOME_DATA, ec.OUTPUT_INCOME_BY_SPENDING_BY_GROUP, True)
 
 if __name__ == '__main__':
