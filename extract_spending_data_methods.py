@@ -1,4 +1,4 @@
-# extract_spending_data.py
+# extract_spending_data_methods.py
 '''Read in a bunch of mint transaction data
    Extract it out year by year and "clean" it
    by removing income and other transactions

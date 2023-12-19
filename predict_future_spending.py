@@ -6,6 +6,7 @@
 import visualization_methods as vms
 import webbrowser
 import os
+import sys
 
 # Import the shared configuration file
 import expenses_config as ec
@@ -34,6 +35,11 @@ for col in df.columns:
         minyr = year
     elif year > maxyr:
         maxyr = year
+
+# Make sure we have some data to work with
+if len(df.columns) <= 0:
+    print('No complete year data to work with. Exiting.')
+    sys.exit(0)
 
 # Create a new column with the average annual spending by group
 df['Average'] = df.mean(numeric_only=True, axis=1)

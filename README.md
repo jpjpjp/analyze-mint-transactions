@@ -2,9 +2,17 @@
 
 This project provides a set of scripts and visualizations that allow Mint users to analyze their spending and income.
 
-The first step is to transaform an export of raw Mint transaction data into a data set useful for spending or income analysis.
+## NEWS - December, 2023
+Intuit announced that Mint is shutting down on Jan 1, 2024.  This release adds support for transactions exported from the  [Empower Transactions Dashboard](https://home.personalcapital.com/page/login/goHome).   Transactions are converted to mint format in [process-empower-transactions.py](./process_empower_transactions.py).   This approach enables potential support for other tools as well.
 
-Once this raw data is broken down into a set of transactions that contributed to spending or income, the following analyses are performed:
+This release also adds the ability to merge a subset of recently exported transactions to a longer running local list of transactions, and adds support for exluding transaction data from particular specified accounts from the analysis.
+
+## How it works
+
+An analysis of income and spending patterns is performed on individual transaction data exported from Intuit Mint or Empower.   The location of this raw transaction data, is sepecified in the PATH_TO_YOUR_TRANSACTIONS variable in [expenses_config.py](./expenses_config.py) and is `./transactions.csv` by default.
+
+Once an extract of transaction data is locally available, the first step is to transform this into a data set useful for spending or income analysis.
+This processed data is then used to perform the following analyses:
 
 - Visualize Annual Spending by Spending Group
   ![pie chart](./tutorial_images/visualize-annual-spending.png)
@@ -49,8 +57,19 @@ Next, to export your transaction history, scroll to the bottom of the tab, and c
 
 ![Mint Export Transactions](/tutorial_images/MintExportTransactions.png?raw=true "Mint Export Transactions")
 
-
 Save the export to file called `transactions.csv` in this project's directory.
+
+Mint limits the amount of transaction data that can be exported, so long time users of this tool will need to maintain a local historical copy of their exported transaction data.  Users can merge periodically exported new transactions to this data by specifying PATH_TO_NEW_TRANSACTIONS in the config file.  NEW_TRANSACTION_SOURCE can be set to "mint" to indicate its source. When configured with these parameters, the tool will automatically merge the new transactions from PATH_TO_NEW_TRANSACTIONS to PATH_TO_YOUR_TRANSACTIONS.
+
+## Exporting Transaction Data from Empower
+
+Given the shutdown of Mint on Jan 1, 2024, I've found Empower to be a reasonable alternative website for aggregating transaction data from multiple accounts.   Like Mint it allows you to categorize each transaction and to export transactions to a CSV file.
+
+Empower's exported transaction format differs slightly from Mint's.   As a consequence, data exported from Empower must be saved to an empower specific csv file (ie: `empower-transactions.csv`) and transformed to mint format before it can be operated on.
+
+Empower users **must** set PATH_TO_NEW_TRANSACTIONS to the name of the csv file exported from Empower, and set NEW_TRANSACTION_SOURCE to "empower".   The tools will transform this data to mint format, and add new transactions to the csv filename specified by PATH_TO_YOUR_TRANSACTIONS in [expenses_config.py](./expenses_config.py)
+
+Over time users can choose to do small periodic exports of Empower data to be merged with their local copy of historical data in PATH_TO_YOUR_TRANSACTIONS, or they can simply export all of their transaction data from Empower, each time they run the tool.  If choosing the latter approach, delete the local copy of the PATH_TO_YOUR_TRANSACTIONS file before running the tool so that it does not interactively ask the user how to manage duplicate transactions.
 
 ## Preparing to extract just the Spending and Income transactions
 
@@ -58,23 +77,25 @@ Mint can capture both spending and income, but the total set of transactions tha
 
 ### Define Spending Groups
 
-The Mint web interface groups categories into broader Spending Groups, for example categories such as "Tuition", "Student Loan", and "Books & Supplies" are all part of the "Education" Spending Group.   Unfortunately, Mint does not provide a way to maintain the Spending Group data as part of their export process.
+The Mint web interface groups categories into broader Spending Groups, for example categories such as "Tuition", "Student Loan", and "Books & Supplies" are all part of the "Education" Spending Group.   Unfortunately, Mint does not provide a way to maintain the Spending Group data as part of their export process.   Empower does not have this concept at all.
 
-These scripts can restore the Spending Group classification to the data set. To do this, a CSV (comma separated values) file, which describes which Categories belong to which Spending Group, is taken as input.  This project includes a [mint-spending-groups-template.csv](./mint-spending-groups-template.csv) file which matches the default Mint Spending Group definitions.
+These tools can restore (or create new) Spending Group classifications to the data set. To do this, a CSV (comma separated values) file, which describes which Categories belong to which Spending Group, is taken as input.  This project includes a [mint-spending-groups-template.csv](./mint-spending-groups-template.csv) file which matches the default Mint Spending Group definitions.
 
 The format of the file is that the Spending Groups are defined in the first row, with the categories for each group included in that column, ex:
-| Income          | Education             | Entertainment          |
+| Home            | Education             | Entertainment          |
 |-----------------|-----------------------|------------------------|
-| Paycheck        | Tuition               | Arts                   |
-| Bonus           | Student Loan          | Music                  |
-| Interest Income | Books & Supplies      | Movies & DVD           |
-|                 |                       | Newspapers & Magazines |
+| Home Supplies   | Tuition               | Arts                   |
+| Rent            | Student Loan          | Music                  |
+| Mortgage        | Books & Supplies      | Movies & DVD           |
+| Home Insurance  |                       | Newspapers & Magazines |
 
 Users should copy this file to a new filed called `mint-spending-groups.csv` which can be edited to include any custom created categories or to override the Mint default Spending Group logic.  Any transactions with Categories not defined in the Spending Group configuration file will be assigned a Spending Group with the same name as the Category.
 
+The specific name and location of this configuration file can be set using the PATH_TO_SPENDING_GROUPS configuration varaible in [expenses_config.py](.expenses_config.py)
+
 ### Exclude non-meaningful data
 
-Mint data may include transactions that are not strictly spending or income.  For example, when credit cards are linked, payments to the credit card show as income (or a "Transaction Type" of "credit") from the credit card account but will also show up as a payment (or a "Transaction Type" of "debit") from your bank account.   We want to exclude all of this when analyzing income or spending.
+Mint data may include transactions that are not strictly spending or income.  For example, when credit cards are linked, payments to the credit card show as income (or a "Transaction Type" of "credit") from the credit card account but will also show up as a payment (or a "Transaction Type" of "debit") from your bank account.   We want to exclude all of this when analyzing income or spending, since each individiaul charge to the credit cards is also stored as a transact and this data is more meaningful.
 
 Another problem area could be reimbursable business expenses.  These may show up in mint as both debits and credits and if we simply remove all credit transactions our spending numbers can be artificially high.   Some Mint users may also have transactions associated with a small business, such as an income property.   It may be helpful to remove these when doing a personal spending analysis. (Income Property owners may be interested in a companion project to [analyze Mint transactions associated with a property](https://github.com/jpjpjp/analyze-property))
 
@@ -90,9 +111,18 @@ Users should copy this file to a new file called `exclude-from-spending-groups.c
 
 The process is similar for creating a data set for an income analysis, although the scripts are smart enough to remove any Spending Group whose transactions include more debits than credits in the aggregate.  Copy the file [exclude-from-income-groups-template.csv](./exclude-from-income-groups-template.csv) to a new file called `exclude-from-income-groups.csv` and update it with Spending Groups you want to explicitly remove from the income data set.
 
+### Extract all transactions associated with certain accounts
+As I began to realize the value of periodically looking at all my transaction data in Mint to identify issues I realized that my mother could also benefit from having someone look at her data, so I added her accounts to Mint and monitor her transactions as well.   However, I don't want to include her transaction data when analyzing my family's spending patterns so I've updated to the tools to extract all transactions associated with her accounts from my local copy of my raw transaction data.   The tools also create a local copy of just her transaction data, so that I can run a seperate analysis of her spending and income if I want.
+
+To enable this extraction simply set the following variables in [expenses_config.py](./expenses_config.py):
+- THIRD_PARTY_ACCOUNTS - a python list of of account names, ie "['Granny Checking', 'Granny Visa']"
+- THIRD_PARTY_PREFIX - a string to prepend to the PATH_TO_YOUR_TRANSACTIONS file that contains the transactions accociated with these accounts.
+
+If these parameters are not set, all the exported transaction data will be maintained.
+
 ### Eliminate partial year data from fututure predictions
 
-Predictions of future year and retirement spending are based on averages from prior years.  In order to ensure that the averages aren't skewed by partial year data, the current year's spending is excluded from the analysis.   Users will also need to set a configuration parameter indicatinh which years to ingore because their data is incomplete.
+Predictions of future year and retirement spending are based on averages from prior years.  In order to ensure that the averages aren't skewed by partial year data, the current year's spending is excluded from the analysis.   Users will also need to set a configuration parameter indicating which years to ingore because their data is incomplete.
 
 These configurations, and many others, are set in a [expenses-config.py](./expenses_config.py) file.   For the most part the default configurations will work as is, but the `IGNORE_YEARS_BEFORE` parameter should be set to the latest year of incomplete data in your mint transactions export.  Edit this section of the file:
 
@@ -111,25 +141,25 @@ CURRENT_YEAR = int(date.strftime("%Y"))
 
 ## Running the tools from the command line
 
-A convenience shell script [run-all.sh](./run-all.sh) will extract all the spending and income data and open new browser pages with analyses of the income and spending found in the mint data.    
+A convenience shell script [run-all.sh](./run-all.sh) will merge and transform recently exported transaction data, extract all the spending and income data, and open new browser pages with analyses of the income and spending found in the mint data.    
 
 Inside this shell script, the following python scripts are being run:
 
-- [get_income_data_as_csv.py](./get_income_data_as_csv.py) - this script reads the raw mint transaction data, adds a new "Spending Group" column and extracts the income related transactions into a new csv, as well as creating a summary csv that includes income by spending group by year.   Additionally it opens up a window with details of which groups were removed, and which Spending Groups were detected as income generating or not.  
+- [extract_spending_and_income.py](./extract_spending_and_income.py) - this script checks if PATH_TO_NEW_TRANSACTIONS is set.  If it is, and that file is newer than the PATH_TO_YOUR_TRANSACTIONS, it aggregates the new transaction data with the locally stored historical copy. This step may require interaction from the user if possible duplicate transactions are detected.  Once all transactions are aggregated it reads the transaction data, adds a new "Spending Group" column, removes transactions as specified by the exclusion configuration files, and extracts the income and spending related transactions into new csv files. It also creates an income_by_group and spending_by_group summary csv file.
 
 - [visualize_income_by_year.py](./visualize_income_by_year.py) - this script generates an html page with pie charts for each full year of income data indentifying the sources of income
 
 - [show_income_group_details.py](./show_income_group_details.py) - this script generates tables with annual income by category for each Spending Group that generated income
 
-- [get_spending_data_as_csv.py](./get_spending_data_as_csv.py) - this script extracts the mint transactions related to spending and opens a window with details on how spending was calculated for various Spending Groups.   Some users may find that this is the only script in this project that is useful for them as the output provides them with the data to do their own types of analysis.
-
 - [visualize_spending_by_year.py](./visualize_spending_by_year.py) - this script generates an html page with pie charts for each full year of spending data indentifying spending by spending group
 
-- [predict_future_spending.py](./predict_future_spending.py) - this script generates an html page with the average spending per year based on past years, and an additional predicted retirement spending which is generated by removing the Spending Groups specified in the `EXCLUDE_FROM_RETIREMENT` variable set in [expenses-config.py](./expenses_config.py)
+- [predict_future_spending.py](./predict_future_spending.py) - this script generates an html page with the average spending per year based on past years, and an additional predicted retirement spending which is generated by removing the Spending Groups specified in the `EXCLUDE_FROM_RETIREMENT` variable set in [expenses-config.py](./expenses_config.py).   This output is skipped in cases where there is not at least one complete year of historical transaction data.
 
 - [show_spending_group_details.py](./show_spending_group_details.py) - this script generates tables with annual spending by category for each Spending Group that generated income
 
-The get_data_as_csv scripts open windows with a text file of output with quite a bit of information about how each Spending Group was processed.  It is worth reading through this output carefully, as it can help you find problems with the data.   Typically you'll need a few runs, with trips back to Mint to clean things up before you have a good output.   The csv files generated by these scripts (defined in the OUTPUT section of [expenses-config.py](./expenses_config.py)  are used as input to the other scripts which perform visualizations on that data.
+- [save_todays_transactions.py](./save_todays_transactions.py) - this script checks if newly exported transactions were aggregated today.  When this happens the newly aggregated transaction data is stored in a temporary file that includes today's date.   When this file is detected the user is prompted to see if they want to move this temporary file to the file specified by the PATH_TO_YOUR_TRANSACTIONS parameter.
+
+The extract_spending_and_income scripts open windows with a text file of output with quite a bit of information about how each Spending Group was processed.  It is worth reading through this output carefully, as it can help you find problems with the data.   Typically you'll need a few runs, with trips back to Mint to clean things up before you have a good output.   The csv files generated by these scripts (defined in the OUTPUT section of [expenses-config.py](./expenses_config.py)  are used as input to the other scripts which perform visualizations on that data.
 
 Some users may wish to only run a subset of these scripts, for example to focus primarily on spending rather than income, or to generate just the extracted income and spending transactions to perform their own analysis.
 
@@ -153,10 +183,12 @@ The cells essentially mimic the steps run in the various income and spending rel
 
 ### Library methods
 
-Both the python scripts and the jupyter notebooks rely on some functionality that is exposed in two local python modules:
+Both the python scripts and the jupyter notebooks rely on some functionality that is exposed in several local python modules:
 
-- [extract_spending_data_methods.py](./extract_spending_data_methods.py) - this file includes methods to read and generate the various input and output.csv files
-- [visualization_methods.py](./visualization_methods.py) - this file includes the methods used to generate the pie charts and tables
+- [add_new_transactions.py](./add_new_transactions.py) - the file includes methods for merging new transaction data with a locally stored copy of historical transaction data.  It generates output showing which transactions were added and detects possible duplicate transactions, querying the user on how to handle them.
+- [extract_spending_data_methods.py](./extract_spending_data_methods.py) - this file includes methods to read and generate the various input and output csv files.
+- [process_empower_transactions.py](./process_empower_transactions.py) - this file includes the methods for converting transactions in empower format to the underlying mint format used by these tools.
+- [visualization_methods.py](./visualization_methods.py) - this file includes the methods used to generate the pie charts and tables.
 
 If you are playing around in jupyter, feel free to pull the relevant methods out of the python file and paste them into cells in the jupyter notebook so you can tewak them as you like.
 

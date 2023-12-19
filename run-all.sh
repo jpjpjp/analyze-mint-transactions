@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Run all the python scripts to analyze spending
-echo Extracting income from mint transaction data...
-python get_income_data_as_csv.py; 
+echo Extracting income and spending from mint transaction data...
+python extract_spending_and_income.py;
 if [ $? -gt 0 ]; then
 	exit $?
 fi
@@ -15,12 +15,6 @@ fi
 
 echo Building Detailed Income by Group view....
 python show_income_group_details.py
-if [ $? -gt 0 ]; then
-	exit $?
-fi
-
-echo Extracting spending from mint transaction data...
-python get_spending_data_as_csv.py; 
 if [ $? -gt 0 ]; then
 	exit $?
 fi
@@ -43,6 +37,6 @@ if [ $? -gt 0 ]; then
 	exit $?
 fi
 
-
+python save_todays_transactions.py
 
 
