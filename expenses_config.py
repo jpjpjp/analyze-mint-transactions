@@ -12,8 +12,15 @@
 PATH_TO_YOUR_TRANSACTIONS = "transactions.csv"
 
 # File with new transaction data
-PATH_TO_NEW_TRANSACTIONS = "mint-transactions.csv"
-NEW_TRANSACTION_SOURCE = "mint"
+PATH_TO_NEW_TRANSACTIONS = "empower-transactions.csv"
+
+# Set the Source of the new transactions.  "mint" and "empower" are currently supported
+NEW_TRANSACTION_SOURCE = "empower"
+# Empower supports fewer categories than mint, but doesn't appear to limit tags
+# Set USE_EMPOWER_LABELS to override categories with labels
+USE_EMPOWER_LABELS = "true"
+# Optionally specify any categories which you don't want to override with tags
+SKIP_CATEGORIES = ['122 Spring St']
 
 # Input file describing which categories to group into which larger spending groups
 # This is a CSV where the first row in each column is the name of a "Spending Group"
@@ -44,7 +51,7 @@ PATH_TO_GROUPS_TO_EXCLUDE_FROM_INCOME = "./exclude-from-income-groups.csv"
 # Configuration
 #################
 # Third party accounts to extract from Transaction Data:
-THIRD_PARTY_ACCOUNTS = []
+THIRD_PARTY_ACCOUNTS = ["Granny Checking", "Granny Savings", "Granny Line of Credit", "Granny Upromise Mastercard"]
 THIRD_PARTY_PREFIX = "granny"
 
 # When predicting future spending, the tools will use the averages

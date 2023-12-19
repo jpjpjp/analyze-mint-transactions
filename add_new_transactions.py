@@ -9,6 +9,7 @@ import os
 
 # Local helper modules
 import read_mint_transaction_data as rmtd
+import process_empower_transactions as pet
 import expenses_config as ec
 
 def add_row_if_unique(old_df, row, verbose=True):
@@ -70,9 +71,13 @@ def add_row_if_unique(old_df, row, verbose=True):
     return old_df
 
 def add_new_transactions(new_df, old_df, outfile, prefix=""):
+    # Unindex the dataframes if they were indexed
+    if old_df.index.name is not None:
+        old_df.reset_index(inplace=True)
+    if new_df.index.name is not None:
+        new_df.reset_index(inplace=True)
     
     # Apply add_row_if_unique function to each row in empower_df
-    print(len(new_df))
     for index, row in new_df.iterrows():
         old_df = add_row_if_unique(old_df,row)
     #old_df = new_df.apply(lambda row: add_row_if_unique(old_df, row), axis=1).iloc[-1]
@@ -83,7 +88,7 @@ def add_new_transactions(new_df, old_df, outfile, prefix=""):
 
     # Write updated mint_df to new CSV file
     rmtd.output_new_transaction_data(df, outfile, prefix)
-    return _df
+    return df
  
 def add_new_and_return_all(trans, new_trans):
         # Get newly exported transaction data
@@ -95,20 +100,20 @@ def add_new_and_return_all(trans, new_trans):
         print(f"No support for transactions in {ec.NEW_TRANSACTION_SOURCE} fromat yet.")
         sys.exit(-1)
 
-    # Get local accumulated transaction data
-    # We use unindexed data when merging old and new transactions
-    old_df = rmtd.read_mint_transaction_csv(trans, index_on_date=False)
-
-    # If configured split the transaction data
+    # If configured split the transaction data and add it to the accumulated
+    # transaction data for the user and the third party
     if hasattr(ec, 'THIRD_PARTY_ACCOUNTS') and hasattr(ec, 'THIRD_PARTY_PREFIX'):
+        print('Splitting out the transactions for the 3rd party accounts...')
         (my_df, their_df) = rmtd.extract_accounts(new_df,ec.THIRD_PARTY_ACCOUNTS)
-        print(f'\nProcessing accounts for {ec.THIRD_PARTY_PREFIX}...')
+        print(f'\nProcessing {len(their_df)} new transactions for {ec.THIRD_PARTY_PREFIX}...')
         their_old_df = rmtd.read_mint_transaction_csv(f"{ec.THIRD_PARTY_PREFIX}-{ec.PATH_TO_YOUR_TRANSACTIONS}", index_on_date=False)
         add_new_transactions(their_df, their_old_df, ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_PREFIX)
-        print("\n\nProcessing your new transactions...")
+        print(f"\n\nProcessing your {len(my_df)} new transactions...")
+        old_df = rmtd.read_mint_transaction_csv(trans, index_on_date=False)
         df = add_new_transactions(my_df, old_df, ec.PATH_TO_YOUR_TRANSACTIONS)
     else:
         # Add new or changed transactions to accumulated data
+        old_df = rmtd.read_mint_transaction_csv(trans, index_on_date=False)
         df = add_new_transactions(new_df, old_df, ec.PATH_TO_YOUR_TRANSACTIONS)
 
     return df

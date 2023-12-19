@@ -6,6 +6,7 @@ import datetime
 import os
 import shutil
 import sys
+import process_empower_transactions as pet
 import expenses_config as ec
 
 def get_latest_transaction_file(path_to_data, query_user=True):
@@ -30,8 +31,19 @@ def extract_accounts(df, acct_list):
 
     return(my_accounts, their_accounts)
 
-def extract_their_accounts_and_get_mine(trans, account_list, output, prefix=""):
-    df = read_mint_transaction_csv(trans)
+def get_new_transaction_data(trans, data_format):
+    if data_format == "mint":
+        df = read_mint_transaction_csv(trans)
+    elif data_format == "empower":
+        df = pet.empower_to_mint_format(ec.PATH_TO_NEW_TRANSACTIONS)
+    else:
+        print(f"No support for transactions in {data_format} fromat yet.")
+        sys.exit(-1)    
+
+    return df
+
+def extract_their_accounts_and_get_mine(trans, data_format, account_list, output, prefix=""):
+    df = get_new_transaction_data(trans, data_format)
     (my_df, their_df) = extract_accounts(df,ec.THIRD_PARTY_ACCOUNTS)
     if len(their_df):
         # Write out the 3rd party data
@@ -63,12 +75,12 @@ def new_transactions_available(trans, new_trans):
     trans - filename of transaction data in mint format
     new_trans - filename with new transactions to add
     """
-    trans = get_latest_transaction_file(trans)
+    trans = get_latest_transaction_file(trans, False)
     if not os.path.isfile(trans):
         # Edge case - new transactions exist, but historical ones don't yet
         # If configured split the transaction data
         if hasattr(ec, 'THIRD_PARTY_ACCOUNTS') and hasattr(ec, 'THIRD_PARTY_PREFIX'):
-            extract_their_accounts_and_get_mine(new_trans, ec.THIRD_PARTY_ACCOUNTS, trans, ec.THIRD_PARTY_PREFIX)
+            extract_their_accounts_and_get_mine(new_trans, ec.NEW_TRANSACTION_SOURCE, ec.THIRD_PARTY_ACCOUNTS, trans, ec.THIRD_PARTY_PREFIX)
         else:
             # New transactions are the only transactions!
             shutil.copy(new_trans, trans)
@@ -80,7 +92,8 @@ def new_transactions_available(trans, new_trans):
 
 
 def read_mint_transaction_csv(path_to_data, index_on_date=True):
-
+    # See if we have an update transaction data file from a previous run today
+    path_to_data = get_latest_transaction_file(path_to_data)
     # Read the raw mint transaction data into a dataframe
     parse_dates = ['Date']
     try:

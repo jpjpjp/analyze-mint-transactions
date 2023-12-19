@@ -117,7 +117,10 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
     # Show the report in a webbrowser
     sys.stdout.close()
     sys.stdout = saved_stdout
-    print('Done. See analysis of exclude groups and refunds in window')
+    if is_income:
+        print('Done. See analysis of income exclude groups and refunds in window')
+    else:
+        print('Done. See analysis of spending exclude groups and refunds in window')
     webbrowser.open('file://' + os.path.realpath(report_path), new=2) # new=2: open in a new tab, if possible
 
 def main():

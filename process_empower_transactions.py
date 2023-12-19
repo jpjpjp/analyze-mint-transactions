@@ -5,10 +5,26 @@
 import pandas as pd
 import numpy as np
 import datetime
+import sys
 import expenses_config as ec
 
-EMPOWER_TRANSACTIONS = "./empower-transactions.csv"
-MINT_TRANSACTIONS = "./mint-transactions.csv"
+# Replace the category with the label for a given row
+def use_tag_as_category(row, skip_categories=[]):
+    if row['Category'] in skip_categories:
+        print(f"Skipping {row['Date']}: {row['Description']} of {row['Amount']} for {row['Category']}...")
+    elif not row.isna()['Labels']:
+        if ', ' == row['Labels']:
+            print('Found improperly split transaction')
+            print(f"{row['Date']}: {row['Description']} of {row['Amount']} for {row['Category']}...")
+            print('Please fix it manually and rerun')
+            sys.exit(0)
+        if ',' in row['Labels']:
+            print(f"Multiple tags found for {row['Date']}: {row['Description']} of {row['Amount']}")
+            print("Please clean data")
+            sys.exit(0)
+        row['Empower Category'] = row['Category']
+        row['Category'] = row['Labels']
+    return row
 
 def empower_to_mint_format(empower_transactions):
     '''
@@ -33,12 +49,24 @@ def empower_to_mint_format(empower_transactions):
         raise ValueError("Missing required columns empower transaction data")
     
     # Convert Amount column to float
+    print(f'Converting {len(empower_df)-1} Empower transactions to mint format')
     empower_df['Amount'] = empower_df['Amount'].astype(float)
     
     # Convert Empower data to Mint format
     empower_df = empower_df.rename(columns={'Account': 'Account Name', 'Tags': 'Labels'})
     empower_df['Transaction Type'] = np.where(empower_df['Amount'] >= 0, 'credit', 'debit')
     empower_df['Amount'] = empower_df['Amount'].abs()
+
+    # Empower supports few categories than Mint so, if enabled override the 
+    # Category with the label
+    if hasattr(ec, "USE_EMPOWER_LABELS"):
+        if hasattr(ec, "SKIP_CATEGORIES"):
+            empower_df = empower_df.apply(use_tag_as_category, args=(ec.SKIP_CATEGORIES), axis=1) 
+        else:
+            empower_df = empower_df.apply(use_tag_as_category, axis=1) 
+
+    # Index on the date
+    empower_df.set_index(['Date'], inplace=True)
 
     return empower_df
 
@@ -63,8 +91,10 @@ def compare_csv_files(file1, file2, file3):
     return list(categories_not_in_file2_or_file3)
 
 def main():
-    # problems = compare_csv_files(EMPOWER_TRANSACTIONS, ec.PATH_TO_SPENDING_GROUPS, ec.PATH_TO_GROUPS_TO_EXCLUDE_FROM_INCOME)
-    # print(problems)
-    add_empower_transactions(EMPOWER_TRANSACTIONS, MINT_TRANSACTIONS)
+    '''
+        Read in empower data
+    '''
+    df = empower_to_mint_format(ec.PATH_TO_NEW_TRANSACTIONS)
+
 if __name__ == '__main__':
     main()
