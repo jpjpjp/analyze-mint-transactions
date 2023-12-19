@@ -108,7 +108,7 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
     all_df.to_csv(output_data_path)
 
     # Keep only the columns we will summarize
-    all_df.drop(columns=['Description', 'Original Description', 'Transaction Type', 'Category', 'Account Name', 'Labels', 'Notes'], inplace=True)
+    all_df.drop(columns=['Description', 'Original Description', 'Transaction Type', 'Category', 'Account Name', 'Labels', 'Notes'], inplace=True, errors='ignore')
 
     # Summarize the data by spending group
     expenses = all_df.groupby(['Spending Group']).sum()
@@ -132,10 +132,10 @@ def main():
         else:
             df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
     else:
-        # PATH_TO_YOUR_TRANSACTIONS is the only data we have
+        # PATH_TO_YOUR_TRANSACTIONS is the only data we have in mint format
         # If configured split out the 3rd party transaction data
         if hasattr(ec, 'THIRD_PARTY_ACCOUNTS') and hasattr(ec, 'THIRD_PARTY_PREFIX'):
-            df = rmtd.extract_their_accounts_and_get_mine(ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_ACCOUNTS, ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_PREFIX)
+            df = rmtd.extract_their_accounts_and_get_mine(ec.PATH_TO_YOUR_TRANSACTIONS, "mint", ec.THIRD_PARTY_ACCOUNTS, ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_PREFIX)
         else:
             df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
 
