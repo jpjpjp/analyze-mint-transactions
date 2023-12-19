@@ -1,4 +1,4 @@
-'''extract_spending_and_income.py
+"""extract_spending_and_income.py
 
     From an input csv of raw mint transaction data
     extract the transactions relevant to a spending and income analysis.
@@ -37,7 +37,7 @@
     related to spending only
     - OUTPUT_SPENDING_BY_GROUP is a CSV of the total annual spending
     by spending group for each year represented in the transaction data
-'''
+"""
 # Import necessary modules
 import pandas as pd
 import sys
@@ -52,7 +52,10 @@ import add_new_transactions as ant
 # Import shared configuration file
 import expenses_config as ec
 
-def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path, is_income):
+
+def extract_data(
+    df, exclude_groups_path, output_data_path, output_by_group_path, is_income
+):
     """
     Extracts either spending or income data from the given dataframe,
     and writes the results to disk.
@@ -70,10 +73,10 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
     """
     # Set the appropriate function to extract either spending or income data
     if is_income:
-        report_path = ec.REPORTS_PATH+'removed-income-transactions.txt'
+        report_path = ec.REPORTS_PATH + "removed-income-transactions.txt"
         extract_func = esd.extract_income
     else:
-        report_path = ec.REPORTS_PATH+'removed-transactions.txt'
+        report_path = ec.REPORTS_PATH + "removed-transactions.txt"
         extract_func = esd.extract_spending
 
     # Create an empty dataframe to hold the extracted data
@@ -81,13 +84,13 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
 
     # Redirect stdout to a file to capture any output from the extract function
     saved_stdout = sys.stdout
-    sys.stdout = open(report_path, 'w')
+    sys.stdout = open(report_path, "w")
 
     # Iterate through the transaction data a year at a time, and extract the appropriate data
     for year in df.index.year.unique():
         # Set the date range for the current year
-        from_date = str(year-1) + '-12-31'
-        to_date = str(year+1) + '-01-01'
+        from_date = str(year - 1) + "-12-31"
+        to_date = str(year + 1) + "-01-01"
 
         try:
             # Extract the appropriate data for the current year
@@ -96,40 +99,64 @@ def extract_data(df, exclude_groups_path, output_data_path, output_by_group_path
             sys.exit(-1)
 
         # Add the extracted data to the running total dataframe
-        column_title = str(year)+' Amount'
+        column_title = str(year) + " Amount"
         if all_df.empty:
             all_df = year_df
-            all_df.rename(columns={'Amount': column_title}, inplace=True)
+            all_df.rename(columns={"Amount": column_title}, inplace=True)
         else:
-            year_df.rename(columns={'Amount': column_title}, inplace=True)
+            year_df.rename(columns={"Amount": column_title}, inplace=True)
             all_df = pd.concat([year_df, all_df])
 
     # Write the raw extracted data to disk as a csv
     all_df.to_csv(output_data_path)
 
     # Keep only the columns we will summarize
-    all_df.drop(columns=['Description', 'Original Description', 'Transaction Type', 'Category', 'Account Name', 'Labels', 'Notes'], inplace=True, errors='ignore')
+    all_df.drop(
+        columns=[
+            "Description",
+            "Original Description",
+            "Transaction Type",
+            "Category",
+            "Empower Category",
+            "Account Name",
+            "Labels",
+            "Notes",
+        ],
+        inplace=True,
+        errors="ignore", #ignore errors in case column does not exist
+    )
 
     # Summarize the data by spending group
-    expenses = all_df.groupby(['Spending Group']).sum()
+    expenses = all_df.groupby(["Spending Group"]).sum()
     expenses.to_csv(output_by_group_path)
 
     # Show the report in a webbrowser
     sys.stdout.close()
     sys.stdout = saved_stdout
     if is_income:
-        print('Done. See analysis of income exclude groups and refunds in window')
+        print("Done. See analysis of income exclude groups and refunds in window")
     else:
-        print('Done. See analysis of spending exclude groups and refunds in window')
-    webbrowser.open('file://' + os.path.realpath(report_path), new=2) # new=2: open in a new tab, if possible
+        print("Done. See analysis of spending exclude groups and refunds in window")
+    webbrowser.open(
+        "file://" + os.path.realpath(report_path), new=2
+    )  # new=2: open in a new tab, if possible
+
 
 def main():
     # If configured and detected, read the new transaction data and aggregate it
-    if hasattr(ec, 'PATH_TO_NEW_TRANSACTIONS') and hasattr(ec, 'NEW_TRANSACTION_SOURCE'):
-        if rmtd.new_transactions_available(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS):
-            choice = input(f'{ec.PATH_TO_NEW_TRANSACTIONS} is newer than {ec.PATH_TO_YOUR_TRANSACTIONS}.  Add new transaction data (y/n)? ')
-            if choice.lower() == 'y':
-                df = ant.add_new_and_return_all(ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS)
+    if hasattr(ec, "PATH_TO_NEW_TRANSACTIONS") and hasattr(
+        ec, "NEW_TRANSACTION_SOURCE"
+    ):
+        if rmtd.new_transactions_available(
+            ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS
+        ):
+            choice = input(
+                f"{ec.PATH_TO_NEW_TRANSACTIONS} is newer than {ec.PATH_TO_YOUR_TRANSACTIONS}.  Add new transaction data (y/n)? "
+            )
+            if choice.lower() == "y":
+                df = ant.add_new_and_return_all(
+                    ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS
+                )
             else:
                 df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
         else:
@@ -137,8 +164,14 @@ def main():
     else:
         # PATH_TO_YOUR_TRANSACTIONS is the only data we have in mint format
         # If configured split out the 3rd party transaction data
-        if hasattr(ec, 'THIRD_PARTY_ACCOUNTS') and hasattr(ec, 'THIRD_PARTY_PREFIX'):
-            df = rmtd.extract_their_accounts_and_get_mine(ec.PATH_TO_YOUR_TRANSACTIONS, "mint", ec.THIRD_PARTY_ACCOUNTS, ec.PATH_TO_YOUR_TRANSACTIONS, ec.THIRD_PARTY_PREFIX)
+        if hasattr(ec, "THIRD_PARTY_ACCOUNTS") and hasattr(ec, "THIRD_PARTY_PREFIX"):
+            df = rmtd.extract_their_accounts_and_get_mine(
+                ec.PATH_TO_YOUR_TRANSACTIONS,
+                "mint",
+                ec.THIRD_PARTY_ACCOUNTS,
+                ec.PATH_TO_YOUR_TRANSACTIONS,
+                ec.THIRD_PARTY_PREFIX,
+            )
         else:
             df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
 
@@ -146,15 +179,30 @@ def main():
     # Set the final parameter to True to get some output about which categories
     # are being assigned to which group
     try:
-        df = esd.group_categories(df, ec.PATH_TO_SPENDING_GROUPS, show_group_details=False)
+        df = esd.group_categories(
+            df, ec.PATH_TO_SPENDING_GROUPS, show_group_details=False
+        )
     except BaseException as e:
         sys.exit(-1)
 
     # Extract spending data and generate local CSV files for further processing
-    extract_data(df, ec.PATH_TO_GROUPS_TO_EXCLUDE, ec.PATH_TO_SPENDING_DATA, ec.PATH_TO_SPENDING_BY_GROUP, False)
+    extract_data(
+        df,
+        ec.PATH_TO_GROUPS_TO_EXCLUDE,
+        ec.PATH_TO_SPENDING_DATA,
+        ec.PATH_TO_SPENDING_BY_GROUP,
+        False,
+    )
 
     # Extract income data  and generate local CSV files for further processing
-    extract_data(df, ec.PATH_TO_GROUPS_TO_EXCLUDE_FROM_INCOME, ec.OUTPUT_INCOME_DATA, ec.OUTPUT_INCOME_BY_SPENDING_BY_GROUP, True)
+    extract_data(
+        df,
+        ec.PATH_TO_GROUPS_TO_EXCLUDE_FROM_INCOME,
+        ec.OUTPUT_INCOME_DATA,
+        ec.OUTPUT_INCOME_BY_SPENDING_BY_GROUP,
+        True,
+    )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
