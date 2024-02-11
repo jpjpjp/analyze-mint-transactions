@@ -6,9 +6,7 @@
     This is the last program run by the run-all.sh script.
 
 """
-import os
 import shutil
-import datetime
 
 import read_mint_transaction_data as rmtd
 

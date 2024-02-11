@@ -20,14 +20,14 @@
     and the user is prompted for how to treat them. In order to avoid permanently
     overwriting existing historical transaction data, today's date is added to
     the updated transactions file.
-    
+
     Once the new raw data (if any is detected) is aggregate, the transaction
     data is processed. Included in this will be adding groups (logical
     groupings of transaction categoreis) to each transaction,
-    removing groups not relevant to a spending or income analysis, 
-    and adjusting any credits in spending categories so that they appear as 
+    removing groups not relevant to a spending or income analysis,
+    and adjusting any credits in spending categories so that they appear as
     "refunds", or and adjusting any debits to offset income in a category
-    
+
     The output of this will be four new CSV files defined in expenses_config.py:
     - OUTPUT_INCOME_DATA is a CSV of the individual transactions
     related to income only
@@ -86,7 +86,7 @@ def extract_data(
     saved_stdout = sys.stdout
     sys.stdout = open(report_path, "w")
 
-    # Iterate through the transaction data a year at a time, and extract the appropriate data
+    # Iterate through the transaction data a year at a time
     for year in df.index.year.unique():
         # Set the date range for the current year
         from_date = str(year - 1) + "-12-31"
@@ -96,6 +96,7 @@ def extract_data(
             # Extract the appropriate data for the current year
             year_df = extract_func(df, exclude_groups_path, from_date, to_date)
         except BaseException as e:
+            print(f'Failed to extract data for year {year}: {e}')
             sys.exit(-1)
 
         # Add the extracted data to the running total dataframe
@@ -123,7 +124,7 @@ def extract_data(
             "Notes",
         ],
         inplace=True,
-        errors="ignore", #ignore errors in case column does not exist
+        errors="ignore",  # ignore errors in case column does not exist
     )
 
     # Summarize the data by spending group
@@ -151,7 +152,9 @@ def main():
             ec.PATH_TO_YOUR_TRANSACTIONS, ec.PATH_TO_NEW_TRANSACTIONS
         ):
             choice = input(
-                f"{ec.PATH_TO_NEW_TRANSACTIONS} is newer than {ec.PATH_TO_YOUR_TRANSACTIONS}.  Add new transaction data (y/n)? "
+                f"{ec.PATH_TO_NEW_TRANSACTIONS} is newer than "
+                f"{ec.PATH_TO_YOUR_TRANSACTIONS}.  "
+                "Add new transaction data (y/n)? "
             )
             if choice.lower() == "y":
                 df = ant.add_new_and_return_all(
@@ -183,6 +186,7 @@ def main():
             df, ec.PATH_TO_SPENDING_GROUPS, show_group_details=False
         )
     except BaseException as e:
+        print(f'Failed to group categories: {e}')
         sys.exit(-1)
 
     # Extract spending data and generate local CSV files for further processing

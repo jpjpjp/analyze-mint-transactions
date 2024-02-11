@@ -39,10 +39,11 @@ def extract_spending(
     """
     # Check that the input mint transaction has been postprocessed
     # to group transaction categories into Spending Groups
-    if not "Spending Group" in mint_df.columns:
+    if "Spending Group" not in mint_df.columns:
         raise Exception(
-            "extract_spending: Input mint transaction data does not have a Spending Group column\n.\
-            Pass data to group_transactions method before calling this method"
+            "extract_spending: Input mint transaction data does not have a "
+            "Spending Group column.\n Pass data to group_transactions method "
+            "before calling this method"
         )
 
     # Extract the transactions for the specified date range
@@ -61,7 +62,8 @@ def extract_spending(
         new_df[(new_df["Spending Group"] == group)] = new_df[
             (new_df["Spending Group"] == group)
         ].apply(find_refunds, axis=1)
-        # TODO ?  If the net of the refunds is income instead of spending should I just remove the group?
+        # TODO ?  If the net of the refunds is income instead of spending
+        # should I just remove the group?
 
     # After filtering out "income" that was probably refunds,
     # see what type of unexpected income is left.  This should not happen (I think...)
@@ -226,7 +228,8 @@ def analyze_and_remove_non_income(input_df, spending_group, output_analysis=True
             + spending_group
             + " generated income. Keeping it in income data set"
         )
-        # Convert any debits into "negative" expenses in the Income generating Spending Group
+        # Convert any debits into "negative" expenses in the Income generating
+        # Spending Group
         input_df[(input_df["Spending Group"] == spending_group)] = input_df[
             (input_df["Spending Group"] == spending_group)
         ].apply(find_expenses, axis=1)
