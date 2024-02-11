@@ -1,13 +1,12 @@
 """show_group_income_details.py
 
     From an input of income data where each transaction has a category and a
-    spending group,generate tables for each spending group that 
+    spending group,generate tables for each spending group that
     shows the annual income by category
 """
 import visualization_methods as vms
 import webbrowser
 import os
-import pandas as pd
 
 # Import the shared configuration file
 import expenses_config as ec

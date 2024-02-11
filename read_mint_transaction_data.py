@@ -11,7 +11,8 @@ import expenses_config as ec
 
 
 def get_latest_transaction_file(path_to_data, query_user=True):
-    # Check if there is a file named transactions-YYYY-MM-DD.csv in the same directory as path_to_data
+    # Check if there is a file named transactions-YYYY-MM-DD.csv in the same
+    # directory as path_to_data
     dir_name = os.path.dirname(path_to_data)
     file_name = (
         os.path.splitext(os.path.basename(path_to_data))[0]
@@ -20,9 +21,11 @@ def get_latest_transaction_file(path_to_data, query_user=True):
     file_path = os.path.join(dir_name, file_name)
     if os.path.exists(file_path):
         if query_user:
-            # Prompt the user to choose whether to use the existing file or the original file specified by path_to_data
+            # Prompt the user to choose whether to use the existing file or the
+            # original file specified by path_to_data
             choice = input(
-                f"A file named {file_name} was found. Would you like to use this file instead of {path_to_data}? (y/n): "
+                f"A file named {file_name} was found. Would you like to use "
+                "this file instead of {path_to_data}? (y/n): "
             )
             if choice.lower() == "y":
                 path_to_data = file_path
@@ -58,9 +61,12 @@ def extract_their_accounts_and_get_mine(
     (my_df, their_df) = extract_accounts(df, ec.THIRD_PARTY_ACCOUNTS)
     if len(their_df):
         # Write out the 3rd party data
+        print(f'Will write ${len(their_df)} transactions to the " \
+              "${ec.THIRD_PARTY_PREFIX} transactions file')
         output_new_transaction_data(their_df, output, prefix)
     if len(my_df):
         # Write out a clean version of my transaction data
+        print(f'Will write remaining transactions to ${output}')
         output_new_transaction_data(my_df, output)
 
     return my_df
@@ -92,6 +98,7 @@ def new_transactions_available(trans, new_trans):
     """
     trans = get_latest_transaction_file(trans, False)
     if not os.path.isfile(trans):
+        print(f'Did not find a ${trans} file.')
         # Edge case - new transactions exist, but historical ones don't yet
         # If configured split the transaction data
         if hasattr(ec, "THIRD_PARTY_ACCOUNTS") and hasattr(ec, "THIRD_PARTY_PREFIX"):
@@ -104,6 +111,7 @@ def new_transactions_available(trans, new_trans):
             )
         else:
             # New transactions are the only transactions!
+            print(f'Will use {new_trans} as the basis for a new local ${trans} file.')
             shutil.copy(new_trans, trans)
         return False
     elif os.path.getmtime(new_trans) > os.path.getmtime(trans):

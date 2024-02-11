@@ -16,9 +16,9 @@ def visualize_expenses_by_group(year, year_data, colors, out_file="", spending=T
 
     year - year (str) that grouped spending totals are for
     year_data - a series with spending totals fby spending group
-    colors - a dictionary of assigned matplotlib colormap values for each spending group
+    colors - a dict of assigned matplotlib colormap vals for each group
     out_file - an optional output file to write the visualization to
-    spending - optional argument.  Set to false if visualizing income transactions
+    spending - optional.  Set to false if visualizing income transactions
     """
     # Build a legend for a Pie Chart that includes the Spending Category and the Amount
     legend_label = []
@@ -111,7 +111,8 @@ def assign_colors_to_groups(df):
     df - a dataframe indexed by a spending group
     """
     # Tab20 is a matplotlib colormap
-    # Others can be found here: https://matplotlib.org/stable/tutorials/colors/colormaps.html
+    # Others can be found here:
+    # https://matplotlib.org/stable/tutorials/colors/colormaps.html
     tab20_colors = list(plt.cm.tab20.colors)
     color_list = tab20_colors
     # If we have more than 20 Spending Groups grow
@@ -153,7 +154,7 @@ def read_structured_transactions(
                 + ": "
                 + structured_transactions
                 + ".\n"
-                + 'Please run "python get_spending_data_as_csv.py" first.'
+                + 'Please run "python extract_spending_and_income.py" first.'
             )
             quit()
     except BaseException as e:
@@ -164,7 +165,7 @@ def read_structured_transactions(
             + structured_transactions
             + "\n{}".format(e)
         )
-        print('Please run "python get_spending_data_as_csv.py" first.')
+        print('Please run "python extract_spending_and_income.py" first.')
         quit()
 
     # Read the summarized annual expenses by spending group
@@ -195,13 +196,13 @@ def build_summary_table(df, ret_df=None):
     sum_row = {col: df[col].sum() for col in df}
 
     # Calculate the Annual Total of Retirement expenses
-    if not ret_df is None:
+    if ret_df is not None:
         sum_ret_row = {col: ret_df[col].sum() for col in ret_df}
 
     # Add these new rows to the table for display
     df.loc[" "] = pd.Series(" ")
     df.loc["Total"] = sum_row
-    if not ret_df is None:
+    if ret_df is not None:
         df.loc["Retirement Total"] = sum_ret_row
 
     # Dispaly nueric values as currency, NaN as an empty row
@@ -211,8 +212,11 @@ def build_summary_table(df, ret_df=None):
     return df
 
 
-def build_category_details(df, category):
-    category_costs = df[df["Spending Group"] == category]
+def build_category_details(df, category=""):
+    if category != "":
+        category_costs = df[df["Spending Group"] == category]
+    else:
+        category_costs = df
     category_expenses = category_costs.groupby(["Category"]).sum()
     category_expenses = category_expenses.sort_index(axis=1)
     category_expenses.loc["Total"] = category_expenses.sum()

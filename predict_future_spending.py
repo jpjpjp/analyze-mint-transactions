@@ -66,9 +66,6 @@ vms.visualize_average_spending_by_group(
 print("<br>", file=HTML_F)
 print("<image src=./" + report_png + ">", file=HTML_F)
 
-# Build a "summary" dataframe that we can visulize as a table
-sum_df = vms.build_summary_table(df, ret_df)
-print(sum_df.to_html(), file=HTML_F)
 
 # Show the report in a webbrowser
 HTML_F.close()

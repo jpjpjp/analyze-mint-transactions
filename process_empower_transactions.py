@@ -4,7 +4,6 @@
 """
 import pandas as pd
 import numpy as np
-import datetime
 import sys
 import expenses_config as ec
 
@@ -13,19 +12,22 @@ import expenses_config as ec
 def use_tag_as_category(row, skip_categories=[]):
     if row["Category"] in skip_categories:
         print(
-            f"Skipping {row['Date']}: {row['Description']} of {row['Amount']} for {row['Category']}..."
+            f"Skipping {row['Date']}: {row['Description']} of {row['Amount']}"
+            f"for {row['Category']}..."
         )
     elif not row.isna()["Labels"]:
         if ", " == row["Labels"]:
             print("Found improperly split transaction")
             print(
-                f"{row['Date']}: {row['Description']} of {row['Amount']} for {row['Category']}..."
+                f"{row['Date']}: {row['Description']} of {row['Amount']} for "
+                f"{row['Category']}..."
             )
             print("Please fix it manually and rerun")
             sys.exit(0)
         if "," in row["Labels"]:
             print(
-                f"Multiple tags found for {row['Date']}: {row['Description']} of {row['Amount']}"
+                f"Multiple tags found for {row['Date']}: {row['Description']} "
+                f"of {row['Amount']}"
             )
             print("Please clean data")
             sys.exit(0)
@@ -114,7 +116,7 @@ def main():
     """
     Read in empower data
     """
-    df = empower_to_mint_format(ec.PATH_TO_NEW_TRANSACTIONS)
+    empower_to_mint_format(ec.PATH_TO_NEW_TRANSACTIONS)
 
 
 if __name__ == "__main__":
