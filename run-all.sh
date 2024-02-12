@@ -37,6 +37,12 @@ if [ $? -gt 0 ]; then
 	exit $?
 fi
 
+echo Showing Year over Year Category Changes...
+python show_spending_category_trends.py
+if [ $? -gt 0 ]; then
+	exit $?
+fi
+
 python save_todays_transactions.py
 
 

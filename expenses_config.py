@@ -3,7 +3,7 @@
    variables that will be used by the various
    scripts to help analyze mint transaction data
 """
-
+import datetime
 
 #################
 # Input Files
@@ -12,51 +12,60 @@
 PATH_TO_YOUR_TRANSACTIONS = "transactions.csv"
 
 # File with new transaction data
-PATH_TO_NEW_TRANSACTIONS = "empower-transactions.csv"
+PATH_TO_NEW_TRANSACTIONS = "mint-transactions.csv"
 # Set the Source of the new transactions.  "mint" and "empower" are currently supported
-NEW_TRANSACTION_SOURCE = "empower"
+NEW_TRANSACTION_SOURCE = "mint"
 
 # Empower supports fewer categories than mint, but doesn't appear to limit tags
 # These parameters are ignored when importing new transaction data from mint
 # Set USE_EMPOWER_LABELS to override categories with labels
 USE_EMPOWER_LABELS = "true"
 # Optionally specify any categories which you don't want to override with tags
-SKIP_CATEGORIES = ["122 Spring St"]
+# SKIP_CATEGORIES = ["Travel", "Rent"]
+
 
 # Input file describing which categories to group into which larger spending groups
 # This is a CSV where the first row in each column is the name of a "Spending Group"
 # The mint categories that belongs to each Spending Group are in listed in each column
-# Categories not assigned to a group will be assigned a Spending Group that matches the Category
+# Categories not assigned to a group will be assigned a
+# Spending Group that matches the Category
 # See mint-spending-groups-template.csv for an example
 PATH_TO_SPENDING_GROUPS = "./mint-spending-groups.csv"
 
 # Input file describing Mint categories to exclude from spending analysis
-# This is a CSV file that describes the Spending Groups whose transctions will be removed
-# from the spending data.  This is typically Income, Credit Card Payments along with any
-# other non spending data (ie: reimbursed expenses, transactions related to a rental property, etc)
-# The format of the files is a Spending Group in the first column.  A second column can be set to False
-# to hide a short printed analysis of the income and expense associated with the category
+# This is a CSV file that describes the Spending Groups whose transctions will
+# be removed from the spending data.  This is typically Income, Credit Card
+# Payments along with any other non spending data (ie: reimbursed expenses,
+# transactions related to a rental property, etc)
+# The format of the files is a Spending Group in the first column.
+# A second column can be set to False to hide a short printed analysis of
+# the income and expense associated with the category
 # See exclude-spending-group-template.csv for an example
 PATH_TO_GROUPS_TO_EXCLUDE = "./exclude-from-spending-groups.csv"
 
 # Input file describing Mint categories to exclude from income analysis
-# This is a CSV file that describes the Spending Groups whose transctions will be removed
-# from the income data.  This is typically Spending Groups that have some credits
-# but shouldn't be considered as income, such as Credit Card Payments, Transfer or
-# or potentially categories that are used to track reimbursable business expenses
+# This is a CSV file that describes the Spending Groups whose transctions will
+# be removed from the income data.
+# This is typically Spending Groups that have some credits but shouldn't be
+# considered as income, such as Credit Card Payments, Transfers or
+# categories that are used to track reimbursable business expenses
 PATH_TO_GROUPS_TO_EXCLUDE_FROM_INCOME = "./exclude-from-income-groups.csv"
 
 
 #################
 # Configuration
 #################
-# Third party accounts to extract from Transaction Data:
+# I use a single mint account to keep an eye on grandma's accounts as well.
+# Optionally, define any accounts to exclude from processed transaction data:
 THIRD_PARTY_ACCOUNTS = [
     "Granny Checking",
     "Granny Savings",
     "Granny Line of Credit",
     "Granny Upromise Mastercard",
 ]
+# If transactions for these accounts are found, write them to a seperate
+# transaction file with the specified prefix, eg: granny-transactions.csv
+# Subsequent runs can specify this transaction file for analysis
 THIRD_PARTY_PREFIX = "granny"
 
 # When predicting future spending, the tools will use the averages
@@ -66,9 +75,9 @@ THIRD_PARTY_PREFIX = "granny"
 # Set this to skip data from old or imcomplete years
 IGNORE_YEARS_BEFORE = 2014
 
-# Get the current year.  We'll exclude expenses in the current year from the Averages
-# Simply set current year to a future year if you prefer to include this year in the average
-import datetime
+# Get the current year.  We'll exclude expenses in the current year from the
+# Averages. Simply set current year to a future year if you prefer to include
+# this year in the average
 
 currentDateTime = datetime.datetime.now()
 date = currentDateTime.date()
