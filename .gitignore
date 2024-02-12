@@ -1,16 +1,11 @@
 # End User Specific transaction and category lists
-transactions.csv
-transactions*.csv
-exclude-from-spending-groups.csv
-exclude-from-income-groups.csv
-mint-spending-groups.csv
-mint-transactions.csv
-empower-transactions.csv
-categories.csv
+*.csv
+!exclude-from-income-groups-template.csv
+!exclude-from-spending-groups-template.csv
+!mint-spending-groups-template.csv
 
-# Config files for my mother
-granny-*
-jp-expenses-config.py
+# Alternate config files
+*-expenses_config.py
 
 # Generated Files
 spending.csv
