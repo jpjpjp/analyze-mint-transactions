@@ -38,8 +38,10 @@
     - OUTPUT_SPENDING_BY_GROUP is a CSV of the total annual spending
     by spending group for each year represented in the transaction data
 """
+
 # Import necessary modules
 import pandas as pd
+import numpy as np
 import sys
 import webbrowser
 import os
@@ -96,7 +98,7 @@ def extract_data(
             # Extract the appropriate data for the current year
             year_df = extract_func(df, exclude_groups_path, from_date, to_date)
         except BaseException as e:
-            print(f'Failed to extract data for year {year}: {e}')
+            print(f"Failed to extract data for year {year}: {e}")
             sys.exit(-1)
 
         # Add the extracted data to the running total dataframe
@@ -143,6 +145,24 @@ def extract_data(
     )  # new=2: open in a new tab, if possible
 
 
+def validate_transactions(df, required_columns):
+    bad_col = None
+    for column in required_columns:
+        if column in df.index.names:
+            if np.isnan(df.index.get_level_values(column)).any():
+                bad_col = column
+                break
+        else:
+            if df[column].isnull().values.any():
+                bad_col = column
+                break
+    if bad_col is None:
+        return True
+    else:
+        print(f"Column {bad_col} is missing data")
+        return False
+
+
 def main():
     # If configured and detected, read the new transaction data and aggregate it
     if hasattr(ec, "PATH_TO_NEW_TRANSACTIONS") and hasattr(
@@ -178,6 +198,11 @@ def main():
         else:
             df = rmtd.read_mint_transaction_csv(ec.PATH_TO_YOUR_TRANSACTIONS)
 
+    # TODO Figure out if the required columns list is legit...
+    if not validate_transactions(df, ["Date", "Amount", "Category", "Description"]):
+        print(f"Fix {ec.PATH_TO_YOUR_TRANSACTIONS} and try again.")
+        sys.exit(-1)
+
     # Run through the transaction list from mint and add a Spending Group column
     # Set the final parameter to True to get some output about which categories
     # are being assigned to which group
@@ -186,7 +211,7 @@ def main():
             df, ec.PATH_TO_SPENDING_GROUPS, show_group_details=False
         )
     except BaseException as e:
-        print(f'Failed to group categories: {e}')
+        print(f"Failed to group categories: {e}")
         sys.exit(-1)
 
     # Extract spending data and generate local CSV files for further processing

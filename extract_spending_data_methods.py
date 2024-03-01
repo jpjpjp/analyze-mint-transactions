@@ -262,7 +262,7 @@ def group_categories(df, spending_group_defs, show_group_details=False):
         raise e
 
     # Iterate over spending groups.
-    for group_name, categories in group_cats_df.iteritems():
+    for group_name, categories in group_cats_df.items():
         categories = categories.dropna()
         if show_group_details:
             print(

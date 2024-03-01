@@ -1,6 +1,7 @@
 """
     Read a local csv of transaction data in mint format to a dataframe
 """
+
 import pandas as pd
 import datetime
 import os
@@ -36,6 +37,10 @@ def get_latest_transaction_file(path_to_data, query_user=True):
 
 
 def extract_accounts(df, acct_list):
+    # For some reason there is often a space before the account name
+    # Clean this up until I can figure out why it's happening
+    df["Account Name"] = df["Account Name"].str.strip()
+
     my_accounts = df[~df["Account Name"].isin(acct_list)]
     their_accounts = df[df["Account Name"].isin(acct_list)]
 
@@ -61,12 +66,14 @@ def extract_their_accounts_and_get_mine(
     (my_df, their_df) = extract_accounts(df, ec.THIRD_PARTY_ACCOUNTS)
     if len(their_df):
         # Write out the 3rd party data
-        print(f'Will write ${len(their_df)} transactions to the " \
-              "${ec.THIRD_PARTY_PREFIX} transactions file')
+        print(
+            f"Will write {len(their_df)} transactions to the "
+            f"{ec.THIRD_PARTY_PREFIX} transactions file"
+        )
         output_new_transaction_data(their_df, output, prefix)
     if len(my_df):
         # Write out a clean version of my transaction data
-        print(f'Will write remaining transactions to ${output}')
+        print(f"Will write remaining transactions to {output}")
         output_new_transaction_data(my_df, output)
 
     return my_df
@@ -98,7 +105,7 @@ def new_transactions_available(trans, new_trans):
     """
     trans = get_latest_transaction_file(trans, False)
     if not os.path.isfile(trans):
-        print(f'Did not find a ${trans} file.')
+        print(f"Did not find a {trans} file.")
         # Edge case - new transactions exist, but historical ones don't yet
         # If configured split the transaction data
         if hasattr(ec, "THIRD_PARTY_ACCOUNTS") and hasattr(ec, "THIRD_PARTY_PREFIX"):
@@ -111,7 +118,7 @@ def new_transactions_available(trans, new_trans):
             )
         else:
             # New transactions are the only transactions!
-            print(f'Will use {new_trans} as the basis for a new local ${trans} file.')
+            print(f"Will use {new_trans} as the basis for a new local {trans} file.")
             shutil.copy(new_trans, trans)
         return False
     elif os.path.getmtime(new_trans) > os.path.getmtime(trans):

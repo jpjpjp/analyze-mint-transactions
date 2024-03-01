@@ -23,13 +23,11 @@ df = vms.read_structured_transactions(
     "summarized income group data",
 )
 
-# Format with commas and round off to two decimal places in pandas
-# Not sure why this doesn't work
-# pd.options.display.float_format = '{:, .2f}'.format
-
 # Loop through each of the spending groups and show the year over year details
 for group in sorted(df["Spending Group"].unique()):
-    group_df = vms.build_category_details(df, group)
+    filtered_df = df.filter(regex='Amount|Category|Spending Group')
+    group_df = vms.build_category_details(filtered_df, group)
+    group_df.drop("Spending Group", axis=1, inplace=True)
     print("<H2><center>Details for " + group + " income<center></H2>", file=HTML_F)
     print(group_df.to_html(), file=HTML_F)
 
