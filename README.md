@@ -2,7 +2,7 @@
 
 This project provides a set of scripts and visualizations that allow Mint users to analyze their spending and income.
 
-## NEWS - March, 2023
+## NEWS - March, 2024
 Mint is still active but is now scheduled to shut down in March, 2024.  This release adds support for transactions imported from [Lunch Money](https://my.lunchmoney.app/overview) an awesome Mint replacement that is undergoing active development including an API to manage and programatically export transactions.   I prefer Lunch Money to Empower and reccomend it to anyone looking for a Mint replacement.  Since Mint has an API there is no need to manually export transaction for analysis with the scripts in this repo.   If the configuration variable NEW_TRANSACTION_SOURCE is set to "lunchmoney", new transactions will be fetched via API, converted to Mint format and added to the local copy of transactions for analysis. 
 
 ## NEWS - December, 2023
