@@ -7,6 +7,7 @@ import sys
 
 # Local helper modules
 import read_mint_transaction_data as rmtd
+import get_lunchmoney_transactions as glt
 import process_empower_transactions as pet
 import expenses_config as ec
 
@@ -128,12 +129,15 @@ def add_new_transactions(new_df, old_df, outfile, prefix="", verbose=True):
     return df
 
 
-def add_new_and_return_all(trans, new_trans):
+def add_new_and_return_all(trans, new_trans=None):
     # Get newly exported transaction data
     if ec.NEW_TRANSACTION_SOURCE == "mint":
         new_df = rmtd.read_mint_transaction_csv(new_trans, index_on_date=False)
     elif ec.NEW_TRANSACTION_SOURCE == "empower":
         new_df = pet.empower_to_mint_format(new_trans)
+    elif ec.NEW_TRANSACTION_SOURCE == "lunchmoney":
+        old_df = rmtd.read_mint_transaction_csv(trans, index_on_date=False)
+        new_df = glt.get_latest_good_lm_transactions(old_df)
     else:
         print(
             f"No support for transactions in {ec.NEW_TRANSACTION_SOURCE} format yet."

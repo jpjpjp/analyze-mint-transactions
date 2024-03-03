@@ -2,6 +2,9 @@
 
 This project provides a set of scripts and visualizations that allow Mint users to analyze their spending and income.
 
+## NEWS - March, 2023
+Mint is still active but is now scheduled to shut down in March, 2024.  This release adds support for transactions imported from [Lunch Money](https://my.lunchmoney.app/overview) an awesome Mint replacement that is undergoing active development including an API to manage and programatically export transactions.   I prefer Lunch Money to Empower and reccomend it to anyone looking for a Mint replacement.  Since Mint has an API there is no need to manually export transaction for analysis with the scripts in this repo.   If the configuration variable NEW_TRANSACTION_SOURCE is set to "lunchmoney", new transactions will be fetched via API, converted to Mint format and added to the local copy of transactions for analysis. 
+
 ## NEWS - December, 2023
 Intuit announced that Mint is shutting down on Jan 1, 2024.  This release adds support for transactions exported from the  [Empower Transactions Dashboard](https://home.personalcapital.com/page/login/goHome).   Transactions are converted to mint format in [process-empower-transactions.py](./process_empower_transactions.py).   This approach enables potential support for other tools as well.
 
@@ -9,7 +12,7 @@ This release also adds the ability to merge a subset of recently exported transa
 
 ## How it works
 
-An analysis of income and spending patterns is performed on individual transaction data exported from Intuit Mint or Empower.   The location of this raw transaction data, is sepecified in the PATH_TO_YOUR_TRANSACTIONS variable in [expenses_config.py](./expenses_config.py) and is `./transactions.csv` by default.
+An analysis of income and spending patterns is performed on individual transaction data exported from Intuit Mint, Empower or Lunch Money.   The location of this raw transaction data, is sepecified in the PATH_TO_YOUR_TRANSACTIONS variable in [expenses_config.py](./expenses_config.py) and is `./transactions.csv` by default.
 
 Once an extract of transaction data is locally available, the first step is to transform this into a data set useful for spending or income analysis.
 This processed data is then used to perform the following analyses:
@@ -67,11 +70,25 @@ Mint limits the amount of transaction data that can be exported, so long time us
 
 Given the shutdown of Mint on Jan 1, 2024, I've found Empower to be a reasonable alternative website for aggregating transaction data from multiple accounts.   Like Mint it allows you to categorize each transaction and to export transactions to a CSV file.
 
+** Update -- I no longer recommend Empower as a Mint alternative.  Their export process does not work with split transactions, and their support team responds that they have no intention of adding this feature **
+
 Empower's exported transaction format differs slightly from Mint's.   As a consequence, data exported from Empower must be saved to an empower specific csv file (ie: `empower-transactions.csv`) and transformed to mint format before it can be operated on.
 
 Empower users **must** set PATH_TO_NEW_TRANSACTIONS to the name of the csv file exported from Empower, and set NEW_TRANSACTION_SOURCE to "empower".   The tools will transform this data to mint format, and add new transactions to the csv filename specified by PATH_TO_YOUR_TRANSACTIONS in [expenses_config.py](./expenses_config.py)
 
 Over time users can choose to do small periodic exports of Empower data to be merged with their local copy of historical data in PATH_TO_YOUR_TRANSACTIONS, or they can simply export all of their transaction data from Empower, each time they run the tool.  If choosing the latter approach, delete the local copy of the PATH_TO_YOUR_TRANSACTIONS file before running the tool so that it does not interactively ask the user how to manage duplicate transactions.
+
+## Importing Transactions from Lunch Money
+
+I now recommend Lunch Money as a Mint replacement.  It has an active developer and community with a [Discord Server](https://discord.com/channels/842337014556262411/).  It also has an API that allows for programatic download of transactions.
+
+To add transactions from Lunch Money to an existing set of Mint Transactions to analyze simply set the following in [expenses_config.py](./expenses_config.py)
+
+  - PATH_TO_YOUR_TRANSACTIONS - a CSV file with a set of transactions exported from Mint.   
+  - NEW_TRANSACTION_SOURCE = "lunchmoney"
+  - LUNCHMONEY_API_TOKEN - API Key found here: [Developers - Lunch Money](https://my.lunchmoney.app/developers)
+  - LOOKBACK_DAYS - The number of days before the most recent transaction in PATH_TO_YOUR_TRANSACTION to use as the start date for fetching transactions from Lunch Money
+  - LM_FETCHED_TRANSACTIONS_CACHE - a filename to use as a cache for fetched transactions from Lunch Money.   This cache will be used if there are multiple API requests for transactions in the same date range and should be deleted if transactions are changed in the Lunch Money app.
 
 ## Preparing to extract just the Spending and Income transactions
 

@@ -11,10 +11,24 @@ import datetime
 # File with accumulated raw mint transaction data
 PATH_TO_YOUR_TRANSACTIONS = "transactions.csv"
 
-# File with new transaction data
+# Set the Source of the new transactions.  "mint", "empower", and "lunchmoney"
+# are currently supported
+NEW_TRANSACTION_SOURCE = "lunchmoney"
+
+# File with new transaction data - ignored if NEW_TRANSACTION_SOURCE is lunchmoney
 PATH_TO_NEW_TRANSACTIONS = "mint-transactions.csv"
-# Set the Source of the new transactions.  "mint" and "empower" are currently supported
-NEW_TRANSACTION_SOURCE = "mint"
+
+# Lunchmoney API Key for fetching new transactions - https://my.lunchmoney.app/developer
+LUNCHMONEY_API_TOKEN = "<YOUR API KEY>"
+
+# Day back after the most recent transaction in PATH_TO_YOUR_TRANSACTIONS to fetch
+# from lunchmoney.  Duplicates are ignored.  Transactions with the same account, date
+# and amount, but different categories or descriptions are interactively resolved
+# in the terminal when the exptract_spending_and_income script is run
+LOOKBACK_TRANSACTION_DAYS = 7
+# Local cache of fetched transactions, handy for interative development
+LM_FETCHED_TRANSACTIONS_CACHE = "/tmp/lm_transactions"
+
 
 # Empower supports fewer categories than mint, but doesn't appear to limit tags
 # These parameters are ignored when importing new transaction data from mint

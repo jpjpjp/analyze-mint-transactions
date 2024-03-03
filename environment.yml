@@ -1,9 +1,10 @@
 name: analyze-mint-transactions
 channels:
-  - defaults
+  - conda-forge
 dependencies:
   - ipython
   - jupyter
+  - lunchable
   - matplotlib
   - notebook
   - numpy

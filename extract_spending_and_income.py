@@ -165,7 +165,12 @@ def validate_transactions(df, required_columns):
 
 def main():
     # If configured and detected, read the new transaction data and aggregate it
-    if hasattr(ec, "PATH_TO_NEW_TRANSACTIONS") and hasattr(
+    if (
+        hasattr(ec, "NEW_TRANSACTION_SOURCE")
+        and ec.NEW_TRANSACTION_SOURCE == "lunchmoney"
+    ):
+        df = ant.add_new_and_return_all(ec.PATH_TO_YOUR_TRANSACTIONS)
+    elif hasattr(ec, "PATH_TO_NEW_TRANSACTIONS") and hasattr(
         ec, "NEW_TRANSACTION_SOURCE"
     ):
         if rmtd.new_transactions_available(

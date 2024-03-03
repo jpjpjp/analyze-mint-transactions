@@ -272,8 +272,7 @@ def group_categories(df, spending_group_defs, show_group_details=False):
                 + str(categories.tolist())
             )
         # Assign Spending Group to all transactions with categories for that group
-        df["Spending Group"][df.Category.isin(categories.tolist())] = group_name
-        # grp = df[df.Category.isin(categories.tolist())]
+        df.loc[df.Category.isin(categories.tolist()), "Spending Group"] = group_name
         # print('\nAnalyzing refunds for spending group: '+group_name+'....')
         # df[grp] = df[grp].apply(find_refunds, axis=1)
 

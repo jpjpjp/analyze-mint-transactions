@@ -26,7 +26,7 @@ def get_latest_transaction_file(path_to_data, query_user=True):
             # original file specified by path_to_data
             choice = input(
                 f"A file named {file_name} was found. Would you like to use "
-                "this file instead of {path_to_data}? (y/n): "
+                f"this file instead of {path_to_data}? (y/n): "
             )
             if choice.lower() == "y":
                 path_to_data = file_path
@@ -37,10 +37,6 @@ def get_latest_transaction_file(path_to_data, query_user=True):
 
 
 def extract_accounts(df, acct_list):
-    # For some reason there is often a space before the account name
-    # Clean this up until I can figure out why it's happening
-    df["Account Name"] = df["Account Name"].str.strip()
-
     my_accounts = df[~df["Account Name"].isin(acct_list)]
     their_accounts = df[df["Account Name"].isin(acct_list)]
 
@@ -135,6 +131,11 @@ def read_mint_transaction_csv(path_to_data, index_on_date=True):
     try:
         df = pd.read_csv(path_to_data, parse_dates=parse_dates)
         df["Amount"] = df["Amount"].astype(float)
+        df['Date'] = pd.to_datetime(df['Date'])
+        # For some reason there is often a space before the account name
+        # Clean this up until I can figure out why it's happening
+        df["Account Name"] = df["Account Name"].str.strip()
+
         if index_on_date:
             df.set_index(["Date"], inplace=True)
     except BaseException as e:
@@ -144,18 +145,3 @@ def read_mint_transaction_csv(path_to_data, index_on_date=True):
         sys.exit(-1)
 
     return df
-
-
-# def read_mint_transaction_csv(path_to_data, index_on_date=True):
-#     # Read the raw mint transaction data into a dataframe
-#     parse_dates = ['Date']
-#     try:
-#         df = pd.read_csv(path_to_data, parse_dates=parse_dates)
-#         df['Amount'] = df['Amount'].astype(float)
-#         if index_on_date:
-#             df.set_index(['Date'], inplace=True)
-#     except BaseException as e:
-#         print('Failed to read mint transaction data: {}'.format(e))
-#         sys.exit(-1)
-
-#     return df
